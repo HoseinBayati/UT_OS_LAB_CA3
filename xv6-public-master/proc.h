@@ -32,29 +32,6 @@ struct context {
   uint eip;
 };
 
-#define BJF_PRIORITY_MIN 1
-#define BJF_PRIORITY_DEF 3
-#define BJF_PRIORITY_MAX 5
-#define MAX_RANDOM_TICKETS 10
-
-enum schedqueue { UNSET, ROUND_ROBIN, LOTTERY, BJF };
-
-struct bjfinfo {
-  int priority;
-  float priority_ratio;
-  int arrival_time;
-  float arrival_time_ratio;
-  float executed_cycle;
-  float executed_cycle_ratio;
-};
-
-struct schedinfo {
-  enum schedqueue queue; // Process queue
-  int last_run;          // Last time process was run
-  struct bjfinfo bjf;    // Best-Job-First scheduling info
-  int tickets_count;     // Number of tickets for lottery scheduler
-};
-
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
 // Per-process state
@@ -72,7 +49,6 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
-  struct schedinfo sched_info; // Scheduling information
 };
 
 // Process memory is laid out contiguously, low addresses first:
@@ -80,12 +56,3 @@ struct proc {
 //   original data and bss
 //   fixed-size stack
 //   expandable heap
-
-#define PROC_HIST_SIZE 1000
-#define SYS_CALL_NUM 35
-#define AGING_THRESHOLD 8000
-
-struct syscall_hist {
-  int pids[PROC_HIST_SIZE];
-  int size;
-};

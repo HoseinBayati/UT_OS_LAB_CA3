@@ -23,19 +23,6 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
-int find_largest_prime_factor(void);
-int change_file_size(char*, int);
-void get_callers(int);
-int get_parent_pid(void);
-int change_scheduling_queue(int, int);
-int set_lottery_ticket(int, int);
-int set_bjf_params_process(int, float, float, float);
-void set_bjf_params_system(float, float, float);
-int set_bjf_priority(int, int);
-void print_process_info(void);
-void sem_init(int, int);
-void sem_acquire(int);
-void sem_release(int);
 
 // ulib.c
 int stat(const char*, struct stat*);
@@ -50,5 +37,3 @@ void* memset(void*, int, uint);
 void* malloc(uint);
 void free(void*);
 int atoi(const char*);
-void srand(uint);
-uint random(void);

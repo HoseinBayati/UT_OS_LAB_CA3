@@ -9,7 +9,6 @@ struct spinlock;
 struct sleeplock;
 struct stat;
 struct superblock;
-struct semaphore;
 
 // bio.c
 void            binit(void);
@@ -34,7 +33,6 @@ void            fileinit(void);
 int             fileread(struct file*, char*, int n);
 int             filestat(struct file*, struct stat*);
 int             filewrite(struct file*, char*, int n);
-int             filechangesize(struct file*, int n);
 
 // fs.c
 void            readsb(int dev, struct superblock *sb);
@@ -54,7 +52,6 @@ struct inode*   nameiparent(char*, char*);
 int             readi(struct inode*, char*, uint, uint);
 void            stati(struct inode*, struct stat*);
 int             writei(struct inode*, char*, uint, uint);
-int             changesize(struct inode*, uint);
 
 // ide.c
 void            ideinit(void);
@@ -115,7 +112,6 @@ struct cpu*     mycpu(void);
 struct proc*    myproc();
 void            pinit(void);
 void            procdump(void);
-void            ageprocs(int);
 void            scheduler(void) __attribute__((noreturn));
 void            sched(void);
 void            setproc(struct proc*);
@@ -123,16 +119,7 @@ void            sleep(void*, struct spinlock*);
 void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
-void            wakeupproc(struct proc*);
 void            yield(void);
-void            push_p_hist(int, int);
-void            get_callers(int);
-int             change_queue(int, int);
-int             set_lottery_ticket(int, int);
-int             set_bjf_params_process(int, float, float, float);
-void            set_bjf_params_system(float, float, float);
-int             set_bjf_priority(int, int);
-void            print_process_info(void);
 
 // swtch.S
 void            swtch(struct context**, struct context*);
@@ -163,11 +150,9 @@ char*           strncpy(char*, const char*, int);
 
 // syscall.c
 int             argint(int, int*);
-int             argfloat(int, float*);
 int             argptr(int, char**, int);
 int             argstr(int, char**);
 int             fetchint(uint, int*);
-int             fetchfloat(uint, float*);
 int             fetchstr(uint, char**);
 void            syscall(void);
 
@@ -184,21 +169,6 @@ extern struct spinlock tickslock;
 void            uartinit(void);
 void            uartintr(void);
 void            uartputc(int);
-
-// utils.c
-void            srand(uint);
-uint            rand(void);
-int             digitcount(int);
-void            printspaces(int);
-
-// semaphore.c
-void            semaphore_init(struct semaphore*, int, char*);
-void            semaphore_acquire(struct semaphore*);
-void            semaphore_release(struct semaphore*);
-int             semaphore_holding(struct semaphore*);
-void            sem_init(int, int);
-void            sem_acquire(int);
-void            sem_release(int);
 
 // vm.c
 void            seginit(void);

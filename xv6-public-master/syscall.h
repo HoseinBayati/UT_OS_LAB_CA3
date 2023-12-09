@@ -20,16 +20,3 @@
 #define SYS_link   19
 #define SYS_mkdir  20
 #define SYS_close  21
-#define SYS_find_largest_prime_factor 22
-#define SYS_change_file_size 23
-#define SYS_get_callers 24
-#define SYS_get_parent_pid 25
-#define SYS_change_scheduling_queue 26
-#define SYS_set_lottery_ticket 27
-#define SYS_set_bjf_params_process 28
-#define SYS_set_bjf_params_system 29
-#define SYS_set_bjf_priority 30
-#define SYS_print_process_info 31
-#define SYS_sem_init 32
-#define SYS_sem_acquire 33
-#define SYS_sem_release 34

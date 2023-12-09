@@ -186,157 +186,7 @@ struct {
   uint e;  // Edit index
 } input;
 
-void
-consputs(const char* s){
-  for(int i = 0; i < INPUT_BUF && (s[i]); ++i){
-    input.buf[input.e++ % INPUT_BUF] = s[i];
-    consputc(s[i]);
-  }
-}
-
-void
-consclear(){
-  while(input.e != input.w &&
-        input.buf[(input.e-1) % INPUT_BUF] != '\n'){
-    input.e--;
-    consputc(BACKSPACE);
-  }
-}
-
-#define HIST_SIZE 15
-struct {
-  uint queue_idx;
-  char cmd_buf[HIST_SIZE][INPUT_BUF];
-  uint last_used_idx;
-  uint last_arrow_idx;
-
-  int is_suggestion_used;
-  char original_cmd[INPUT_BUF];
-  uint original_cmd_size;
-
-  int total_count;
-  int last_arrow_total;
-} hist;
-
-static int
-get_suggestion(const char* cmd, uint cmd_size)
-{
-  for(int i = 0; i < HIST_SIZE; ++i){
-    int idx = (i + hist.last_used_idx) % HIST_SIZE;
-    if(strncmp(cmd, hist.cmd_buf[idx], cmd_size) == 0){
-      return idx;
-    }
-  }
-  return -1;
-}
-
-static void
-suggest_cmd()
-{
-  if(!hist.is_suggestion_used){
-    hist.original_cmd_size = input.e - input.w;
-    memmove(hist.original_cmd, input.buf + input.w, hist.original_cmd_size);
-  }
-  int suggested_cmd = get_suggestion(hist.original_cmd, hist.original_cmd_size);
-  if(suggested_cmd >= 0){
-    hist.is_suggestion_used = 1;
-    hist.last_used_idx = suggested_cmd + 1;
-    consclear();
-    consputs(hist.cmd_buf[suggested_cmd]);
-  }
-  else // beep
-    consputc('\a');
-}
-
-static void
-push_current_hist()
-{
-  if(input.e - input.w == 1)
-    return;
-  memset(hist.cmd_buf[hist.queue_idx], 0, INPUT_BUF);
-  memmove(hist.cmd_buf[hist.queue_idx],
-          input.buf + input.w,
-          input.e - input.w - 1);
-  hist.queue_idx = (hist.queue_idx + 1) % HIST_SIZE;
-  hist.last_arrow_idx = hist.queue_idx;
-  hist.total_count++;
-  hist.last_arrow_total = hist.total_count;
-  hist.is_suggestion_used = 0;
-  hist.last_used_idx = 0;
-  memset(hist.original_cmd, 0, INPUT_BUF);
-}
-
-void
-revstr(char* src, uint len)
-{
-  int i = 0, j = len - 1;
-  while (i < j) {
-    char tmp = src[i];
-    src[i] = src[j];
-    src[j] = tmp;
-    i++;
-    j--;
-  }
-}
-
-static void
-revline()
-{
-  char cmd[INPUT_BUF];
-  memmove(cmd, input.buf + input.w, input.e - input.w);
-  cmd[input.e - input.w] = '\0';
-  revstr(cmd, input.e - input.w);
-  consclear();
-  consputs(cmd);
-}
-
-static void
-remnums()
-{
-  char cmd[INPUT_BUF];
-  int j = 0;
-  for(int i = 0; i < input.e - input.w; ++i){
-    int idx = (input.w + i) % INPUT_BUF;
-    if(input.buf[idx] >= '0' && input.buf[idx] <= '9'){
-      continue;
-    }
-    cmd[j++] = input.buf[idx];
-  }
-  cmd[j] = '\0';
-  consclear();
-  consputs(cmd);
-}
-
-static void
-hist_up()
-{
-  if(hist.last_arrow_total > 0 &&
-     hist.last_arrow_total > hist.total_count - HIST_SIZE){
-    hist.last_arrow_total--;
-    hist.last_arrow_idx = (hist.last_arrow_idx - 1 + HIST_SIZE) % HIST_SIZE;
-    consclear();
-    consputs(hist.cmd_buf[hist.last_arrow_idx]);
-  }
-  else // beep
-    consputc('\a');
-}
-
-static void
-hist_down()
-{
-  if(hist.last_arrow_total < hist.total_count){
-    hist.last_arrow_total++;
-    hist.last_arrow_idx = (hist.last_arrow_idx + 1) % HIST_SIZE;
-    consclear();
-    consputs(hist.cmd_buf[hist.last_arrow_idx]);
-  }
-  else // beep
-    consputc('\a');
-}
-
 #define C(x)  ((x)-'@')  // Control-x
-#define ARROW_UP 65
-#define ARROW_DOWN 66
 
 void
 consoleintr(int (*getc)(void))
@@ -351,52 +201,24 @@ consoleintr(int (*getc)(void))
       doprocdump = 1;
       break;
     case C('U'):  // Kill line.
-      consclear();
+      while(input.e != input.w &&
+            input.buf[(input.e-1) % INPUT_BUF] != '\n'){
+        input.e--;
+        consputc(BACKSPACE);
+      }
       break;
     case C('H'): case '\x7f':  // Backspace
       if(input.e != input.w){
         input.e--;
         consputc(BACKSPACE);
-        hist.is_suggestion_used = 0;
       }
       break;
-    case C('R'): // Reverse line.
-      revline();
-      break;
-    case C('N'): // Remove numbers from line.
-      remnums();
-      break;
-    case '\t': // Suggest command from history.
-      suggest_cmd();
-      break;
-    case 27: // Escape sequence for arrow history.
-      if((c = getc()) == 91){
-        if((c = getc()) == ARROW_UP){
-          hist_up();
-          break;
-        }
-        else if (c == ARROW_DOWN){
-          hist_down();
-          break;
-        }
-        else{
-          input.buf[input.e++ % INPUT_BUF] = 27;
-          consputc(27);
-          input.buf[input.e++ % INPUT_BUF] = 91;
-          consputc(91);
-        }
-      }
-      else{
-        input.buf[input.e++ % INPUT_BUF] = 27;
-        consputc(27);
-      }
     default:
       if(c != 0 && input.e-input.r < INPUT_BUF){
         c = (c == '\r') ? '\n' : c;
         input.buf[input.e++ % INPUT_BUF] = c;
         consputc(c);
         if(c == '\n' || c == C('D') || input.e == input.r+INPUT_BUF){
-          push_current_hist();
           input.w = input.e;
           wakeup(&input.r);
         }
@@ -474,3 +296,4 @@ consoleinit(void)
 
   ioapicenable(IRQ_KBD, 0);
 }
+
