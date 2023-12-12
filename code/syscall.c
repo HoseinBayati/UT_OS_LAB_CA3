@@ -103,6 +103,14 @@ extern int sys_unlink(void);
 extern int sys_wait(void);
 extern int sys_write(void);
 extern int sys_uptime(void);
+extern int sys_get_parent_pid(void);
+extern int sys_find_largest_prime_factor(void);
+extern int sys_get_callers(void);
+extern int sys_print_all_get_status(void);
+extern int sys_set_proc_queue(void);
+// extern int sys_set_proc_lottery_ticket(void);
+extern int sys_set_bjf_params(void);
+extern int sys_set_all_bjf_params(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -126,18 +134,30 @@ static int (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
+[SYS_get_parent_pid] sys_get_parent_pid,
+[SYS_find_largest_prime_factor] sys_find_largest_prime_factor,
+[SYS_get_callers] sys_get_callers,
+[SYS_print_all_get_status]  sys_print_all_get_status,
+[SYS_set_proc_queue] sys_set_proc_queue,
+// [SYS_set_proc_lottery_ticket] sys_set_proc_lottery_ticket,
+[SYS_set_bjf_params] sys_set_bjf_params,
+[SYS_set_all_bjf_params] sys_set_all_bjf_params
 };
 
-void
+void 
 syscall(void)
 {
   int num;
   struct proc *curproc = myproc();
 
   num = curproc->tf->eax;
-  if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
+  if (num > 0 && num < NELEM(syscalls) && syscalls[num])
+  {
+    push_callerp(curproc->pid, num);
     curproc->tf->eax = syscalls[num]();
-  } else {
+  }
+  else
+  {
     cprintf("%d %s: unknown sys call %d\n",
             curproc->pid, curproc->name, num);
     curproc->tf->eax = -1;

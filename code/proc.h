@@ -1,3 +1,8 @@
+#define ROUNDROBIN 1
+#define LCFS 2
+#define BJF 3
+
+
 // Per-CPU state
 struct cpu {
   uchar apicid;                // Local APIC ID
@@ -49,6 +54,18 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+
+  int queue;                   // 1: Round Robin    2: LCFS    3: BJF
+  int priority;                // proc priority in queue
+  long int creation_time;      // Arrival time
+  float priority_ratio;          // used for calculating rank
+  // float creation_time_ratio;     // used for calculating rank
+  float executed_cycle;        // increasing 0.1 per cycle?
+  float executed_cycle_ratio;    // used for calculating rank
+  float arrival_time_ratio;      // arrival time ratio
+  int waited_start_time;           // used for aging
+  // int lottery_ticket;          // lottery ticket of proc in queue 2
+  long int last_executed_time; // last executed time        
 };
 
 // Process memory is laid out contiguously, low addresses first:

@@ -23,6 +23,14 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+int get_parent_pid(void);
+int find_largest_prime_factor(void);
+void get_callers(int syscall_number);
+void print_all_get_status(void);
+void set_proc_queue(int , int);
+// void set_proc_lottery_ticket(int , int);
+void set_bjf_params(int, int, int, int);
+void set_all_bjf_params(int, int, int);
 
 // ulib.c
 int stat(const char*, struct stat*);

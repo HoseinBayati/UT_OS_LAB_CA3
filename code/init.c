@@ -16,11 +16,24 @@ main(void)
     mknod("console", 1, 1);
     open("console", O_RDWR);
   }
+
   dup(0);  // stdout
   dup(0);  // stderr
 
   for(;;){
-    printf(1, "init: starting sh\n");
+    printf(1, "init: starting sh\n\n");
+    printf(1, "Group 11:\n");
+
+    printf(1, " - Hosein Bayati        810198366\n");
+    printf(1, " - Amirreza Kaffashan   810899---\n");
+    printf(1, " - Hossein Noroozi      810899---\n");
+
+    printf(1 , "\nCommands:\n");
+    printf(1 , " 1. get_status: show to status of all available processes\n");
+    printf(1 , " 2. set_queue: set the queue of a process\n");
+    printf(1 , " 3. set_bjf_params: set the bjf params of a process\n");
+    printf(1 , " 4. set_all_bjf_params: set the bjf params of all processes\n\n");
+
     pid = fork();
     if(pid < 0){
       printf(1, "init: fork failed\n");

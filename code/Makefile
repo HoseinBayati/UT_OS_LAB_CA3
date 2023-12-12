@@ -178,9 +178,18 @@ UPROGS=\
 	_rm\
 	_sh\
 	_stressfs\
-	_usertests\
 	_wc\
 	_zombie\
+	_prime_numbers\
+	_fork_descendants\
+	_find_largest_prime_factor\
+	_get_callers_test\
+	_get_status\
+	_set_queue\
+	_foo\
+	_set_bjf_params\
+	_set_all_bjf_params\
+	_help\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
@@ -249,8 +258,9 @@ qemu-nox-gdb: fs.img xv6.img .gdbinit
 
 EXTRA=\
 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
-	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c zombie.c\
+	ln.c ls.c mkdir.c rm.c stressfs.c wc.c zombie.c\
 	printf.c umalloc.c\
+	printf.c umalloc.c _prime_numbers.c _get_status.c _set_queue.c _foo.c _set_bjf_params.c _set_all_bjf_params.c help.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\
 
