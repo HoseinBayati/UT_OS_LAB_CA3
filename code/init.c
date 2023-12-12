@@ -25,8 +25,8 @@ main(void)
     printf(1, "Group 11:\n");
 
     printf(1, " - Hosein Bayati        810198366\n");
-    printf(1, " - Amirreza Kaffashan   810899---\n");
-    printf(1, " - Hossein Noroozi      810899---\n");
+    printf(1, " - Amirreza Kaffashan   810899064\n");
+    printf(1, " - Hossein Noroozi      810899073\n");
 
     printf(1 , "\nCommands:\n");
     printf(1 , " 1. get_status: show to status of all available processes\n");

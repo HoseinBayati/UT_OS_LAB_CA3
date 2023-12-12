@@ -95,7 +95,6 @@ found:
   p->creation_time = ticks;
   p->waited_start_time = p->creation_time;
   p->executed_cycle = 0;
-  // p->lottery_ticket = 30; // defualt ticket: 30
 
   acquire(&tickslock);
   p->priority = (ticks * ticks * 1021) % 100; // generates a pseudorandom priority
@@ -397,8 +396,6 @@ void aging(void)
   }
 }
 
-// Lottery schedular
-
 int random_number_generator(int divisor)
 {
   return (918273645 + ticks * ticks * ticks) % divisor;
@@ -426,34 +423,6 @@ struct proc *last_come_first_serve(void)
   return last_p;
 }
 
-// struct proc *lotterySched(void)
-// {
-//   struct proc *p;
-
-//   int sum_lotteries_ticket = 1;
-
-//   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-//   {
-//     if (p->state != RUNNABLE || p->queue != LCFS)
-//       continue;
-//     sum_lotteries_ticket += p->lottery_ticket;
-//   }
-
-//   int random_ticket = random_number_generator(sum_lotteries_ticket);
-
-//   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-//   {
-//     if (p->state != RUNNABLE || p->queue != LCFS)
-//       continue;
-//     random_ticket -= p->lottery_ticket;
-
-//     if (random_ticket <= 0)
-//     {
-//       return p;
-//     }
-//   }
-//   return 0;
-// }
 
 // Round Robin schedular
 
@@ -499,7 +468,6 @@ void scheduler(void)
     if (p == 0)
     {
       p = last_come_first_serve();
-      // p = lotterySched();                                 /////////////////////////////////////////////////////////////////////
     }
     if (p == 0)
     {
@@ -814,12 +782,6 @@ void print_all_get_status()
   for (int i = 0; i < 12 - strlen("arrival"); i++)
     cprintf(" ");
 
-    
-
-  // cprintf("Lottery_ticket");
-  // for (int i = 0; i < 18 - strlen("lottery_ticket"); i++)                   /////////////////////////////////////////////////////////////////////
-  //   cprintf(" ");
-
   cprintf("BJF_Rank");
   for (int i = 0; i < 12 - strlen("bjf_Rank"); i++)
     cprintf(" ");
@@ -863,13 +825,6 @@ void print_all_get_status()
     for (int i = 0; i < 17 - get_num_len(p->creation_time); i++)
       cprintf(" ");
 
-    // if (p->lottery_ticket == -1)
-    //   cprintf("N/A");
-    // else
-    //   cprintf("%d", p->lottery_ticket);
-    // for (int i = 0; i < 15 - get_num_len(p->lottery_ticket); i++)
-    //   cprintf(" ");
-
     cprintf("%d", calculate_rank(p));
     for (int i = 0; i < 15 - get_num_len(calculate_rank(p)); i++)
       cprintf(" ");
@@ -905,19 +860,6 @@ void set_proc_queue(int pid, int queue_level)
     }
   release(&ptable.lock);
 }
-
-// void set_proc_lottery_ticket(int lottery_ticket, int pid)
-// {
-//   struct proc *p;
-//   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-//   {
-//     if (pid == p->pid)
-//     {
-//       p->lottery_ticket = lottery_ticket;
-//       break;
-//     }
-//   }
-// }
 
 void set_bjf_params(int pid, int priority_ratio, int arrival_time_ratio, int executed_cycle_ratio)
 {

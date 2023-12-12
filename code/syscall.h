@@ -25,6 +25,5 @@
 #define SYS_get_callers 24
 #define SYS_print_all_get_status 25
 #define SYS_set_proc_queue 26
-// #define SYS_set_proc_lottery_ticket 27
 #define SYS_set_bjf_params 28
 #define SYS_set_all_bjf_params 29

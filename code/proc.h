@@ -64,7 +64,6 @@ struct proc {
   float executed_cycle_ratio;    // used for calculating rank
   float arrival_time_ratio;      // arrival time ratio
   int waited_start_time;           // used for aging
-  // int lottery_ticket;          // lottery ticket of proc in queue 2
   long int last_executed_time; // last executed time        
 };
 

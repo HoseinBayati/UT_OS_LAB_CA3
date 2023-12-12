@@ -108,7 +108,6 @@ extern int sys_find_largest_prime_factor(void);
 extern int sys_get_callers(void);
 extern int sys_print_all_get_status(void);
 extern int sys_set_proc_queue(void);
-// extern int sys_set_proc_lottery_ticket(void);
 extern int sys_set_bjf_params(void);
 extern int sys_set_all_bjf_params(void);
 
@@ -139,7 +138,6 @@ static int (*syscalls[])(void) = {
 [SYS_get_callers] sys_get_callers,
 [SYS_print_all_get_status]  sys_print_all_get_status,
 [SYS_set_proc_queue] sys_set_proc_queue,
-// [SYS_set_proc_lottery_ticket] sys_set_proc_lottery_ticket,
 [SYS_set_bjf_params] sys_set_bjf_params,
 [SYS_set_all_bjf_params] sys_set_all_bjf_params
 };

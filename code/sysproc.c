@@ -158,15 +158,6 @@ sys_set_proc_queue(void)
   set_proc_queue(pid, queue_level);
 }
 
-
-// void sys_set_proc_lottery_ticket()
-// {
-//   int lottery_ticket , pid;
-//   argint(0, &lottery_ticket);
-//   argint(1, &pid);
-//   set_proc_lottery_ticket(lottery_ticket, pid);
-// }
-
 void sys_set_bjf_params(void)
 {
   int pid, priority_ratio, arrival_time_ratio, executed_cycle_ratio;
