@@ -53,7 +53,6 @@ struct proc {
   char name[16];               // Process name (debugging)
   enum schedQ q_type;
   
-
   int priority;                // proc priority in queue
   float priority_ratio;          // used for calculating rank
   float executed_cycle;        // increasing 0.1 per cycle?
@@ -63,7 +62,6 @@ struct proc {
   float process_size_ratio;
 
   uint running_ticks;
-  // uint ticket;
   uint waiting_time;
   uint change_running_queue;  // If changing a process's queue while running is 1 else 0
 };
@@ -77,8 +75,5 @@ struct proc {
 #define TIME_SLOT 5
 #define AGING_BOUND 8000
 #define BJF_UPPER_BOUND 500
-// #define LCFS_UPPER_BOUND 500
-
-
 
 #define CALL_PROCS "callprocs"

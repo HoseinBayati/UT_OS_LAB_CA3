@@ -470,11 +470,17 @@ void set_all_bjf_params(int priority_ratio, int arrival_time_ratio, int executed
   release(&ptable.lock);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int calculate_rank(struct proc *p)
+{
+  return ((p->priority * p->priority_ratio) +
+          (p->arrivetime * p->arrivetime_ratio) +
+          (p->executed_cycle * p->executed_cycle_ratio));
+}
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // PAGEBREAK: 42
 //  Per-CPU process scheduler.
@@ -550,26 +556,43 @@ void scheduler(void)
     }
     else if (bjf_q.pi >= 0)
     {
-      p = bjf_q.proc[0];
-      if (p->state == RUNNABLE)
+      // p = bjf_q.proc[0];
+      // if (p->state == RUNNABLE)
+      // {
+      //   found_runnable = 1;
+      // }
+      // else if (p->state == RUNNING)
+      // {
+      //   for (int i = 0; i < bjf_q.pi; i++)
+      //   {
+      //     if (bjf_q.proc[i + 1]->state == RUNNABLE)
+      //     {
+      //       p = bjf_q.proc[i + 1];
+      //       found_runnable = 1;
+      //       break;
+      //     }
+      //   }
+      // }
+      // else
+      // {
+      //   panic("No runnable process\n");
+      // }
+
+      float worst_rank = 999999999;
+      float rank;
+
+      for (int i = 0; i < bjf_q.pi; i++)
       {
-        found_runnable = 1;
-      }
-      else if (p->state == RUNNING)
-      {
-        for (int i = 0; i < bjf_q.pi; i++)
+        if (bjf_q.proc[i]->state != RUNNABLE)
+          continue;
+
+        rank = calculate_rank(bjf_q.proc[i]);
+
+        if (rank < worst_rank)
         {
-          if (bjf_q.proc[i + 1]->state == RUNNABLE)
-          {
-            p = bjf_q.proc[i + 1];
-            found_runnable = 1;
-            break;
-          }
+          p = bjf_q.proc[i];
+          worst_rank = rank;
         }
-      }
-      else
-      {
-        panic("No runnable process\n");
       }
     }
     else
@@ -899,7 +922,7 @@ char *wrap_spacei(int inp, char *holder, const int len)
 #define NAME_LEN 15
 #define PID_LEN 3
 #define STATE_LEN 8
-#define AT_LEN 12
+#define AT_LEN 5
 // #define TICKET_LEN 3
 #define TICKS_LEN 6
 
@@ -913,7 +936,7 @@ void print_proc(void)
       [RUNNABLE] "RUNNABLE",
       [RUNNING] "RUNNING ",
       [ZOMBIE] "ZOMBIE  "};
-  cprintf("name            pid  state    queue  arrive_time    global_ticks\n");
+  cprintf("name          pid  state    queue  arr_time  priority exe_cycle  p_size  ticks\n");
   cprintf("...............................................................\n");
   acquire(&ptable.lock);
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
@@ -924,11 +947,14 @@ void print_proc(void)
     char pid_holder[PID_LEN + 1];
     char at_holder[AT_LEN + 1];
 
-    cprintf("%s %s  %s %d      %s   %d  \n",
+    cprintf("%s %s %s   %d     %s     %d        %d          %d       %d\n",
             wrap_space(p->name, name_holder, NAME_LEN),
             wrap_spacei(p->pid, pid_holder, PID_LEN),
             states[p->state], p->q_type,
             wrap_spacei(p->arrivetime, at_holder, AT_LEN),
+            p->priority,
+            p->executed_cycle,
+            sizeof(p),
             // wrap_spacei(p->runningTicks, ticks_holder, TICKS_LEN),
             ticks);
   }
