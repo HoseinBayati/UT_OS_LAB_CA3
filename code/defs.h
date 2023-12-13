@@ -123,6 +123,8 @@ void            yield(void);
 void            print_proc(void);
 void            agingMechanism(void);
 void            change_queue(int, int);
+int             change_local_bjf(int, int, int, int, int);
+int             change_global_bjf(int, int, int, int);
 
 // swtch.S
 void            swtch(struct context**, struct context*);

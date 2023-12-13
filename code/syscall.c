@@ -105,6 +105,9 @@ extern int sys_write(void);
 extern int sys_uptime(void);
 extern int sys_print_proc(void);
 extern int sys_change_queue(void);
+extern int sys_change_local_bjf(void);
+extern int sys_change_global_bjf(void);
+
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -130,6 +133,9 @@ static int (*syscalls[])(void) = {
 [SYS_close]   sys_close,
 [SYS_print_proc] sys_print_proc,
 [SYS_change_queue] sys_change_queue,
+[SYS_change_local_bjf]      sys_change_local_bjf,
+[SYS_change_global_bjf]     sys_change_global_bjf,
+
 };
 
 void

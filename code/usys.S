@@ -31,3 +31,6 @@ SYSCALL(sleep)
 SYSCALL(uptime)
 SYSCALL(print_proc)
 SYSCALL(change_queue)
+SYSCALL(change_local_bjf)
+SYSCALL(change_global_bjf)
+

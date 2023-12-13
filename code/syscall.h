@@ -22,3 +22,6 @@
 #define SYS_close  21
 #define SYS_print_proc 22
 #define SYS_change_queue 23
+#define SYS_change_local_bjf    24
+#define SYS_change_global_bjf   25
+

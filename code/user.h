@@ -25,6 +25,9 @@ int sleep(int);
 int uptime(void);
 void print_proc(void);
 void change_queue(int pid, int queueID);
+int change_local_bjf(int, int, int, int);
+int change_global_bjf(int, int, int, int);
+
 
 // ulib.c
 int stat(const char*, struct stat*);

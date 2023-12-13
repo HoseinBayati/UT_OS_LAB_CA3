@@ -218,6 +218,10 @@ int growproc(int n)
   switchuvm(curproc);
   return 0;
 }
+int priority_ratio = 0.25;
+int arrivetime_ratio = 0.25;
+int executed_cycle_ratio = 0.25;
+int size_ratio = 0.25;
 
 // Create a new process copying p as the parent.
 // Sets up stack to return as if from system call.
@@ -443,42 +447,6 @@ int wait(void)
     // Wait for children to exit.  (See wakeup1 call in proc_exit.)
     sleep(curproc, &ptable.lock); // DOC: wait-sleep
   }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void set_bjf_params(int pid, int priority_ratio, int arrival_time_ratio, int executed_cycle_ratio)
-{
-  struct proc *p;
-
-  acquire(&ptable.lock);
-  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-  {
-    if (p->pid == pid)
-    {
-      p->priority_ratio = priority_ratio;
-      p->arrivetime = arrival_time_ratio;
-      p->executed_cycle_ratio = executed_cycle_ratio;
-    }
-  }
-  release(&ptable.lock);
-}
-
-void set_all_bjf_params(int priority_ratio, int arrival_time_ratio, int executed_cycle_ratio)
-{
-  struct proc *p;
-
-  acquire(&ptable.lock);
-  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-  {
-    p->priority_ratio = priority_ratio;
-    p->arrivetime = arrival_time_ratio;
-    p->executed_cycle_ratio = executed_cycle_ratio;
-  }
-  release(&ptable.lock);
 }
 
 int calculate_rank(struct proc *p)
@@ -912,16 +880,16 @@ char *wrap_spacei(int inp, char *holder, const int len)
 #define PID_LEN 3
 #define STATE_LEN 8
 #define AT_LEN 10
-#define ATR_LEN 1 //Arrive time ratio
+#define ATR_LEN 1 // Arrive time ratio
 
 #define PR_LEN 13
-#define PRR_LEN 1 //Priority ratio
+#define PRR_LEN 1 // Priority ratio
 
 #define EX_LEN 10
-#define EXR_LEN 1 //Execution ratio
+#define EXR_LEN 1 // Execution ratio
 
 #define SIZE_LEN 7
-#define SIZER_LEN 2 //Size ratio
+#define SIZER_LEN 2 // Size ratio
 
 #define TICKS_LEN 6
 
@@ -969,7 +937,7 @@ void print_proc(void)
             wrap_spacei(p->arrivetime_ratio, atr_holder, ATR_LEN),
             wrap_spacei(p->executed_cycle_ratio, exr_holder, EXR_LEN),
             wrap_spacei(p->size_ratio, sizer_holder, SIZER_LEN),
-          
+
             wrap_spacei(p->running_ticks, ex_holder, EX_LEN),
             wrap_spacei(p->sz, size_holder, SIZE_LEN),
             wrap_spacei(ticks, ticks_holder, TICKS_LEN));
@@ -1060,4 +1028,56 @@ void change_queue(int pid, int queueID)
     p->change_running_queue = 1;
   }
   release(&ptable.lock);
+}
+
+int change_local_bjf(int pid, int pRatio, int aRatio, int eRatio, int sRatio)
+{
+  struct proc *p = 0;
+
+  acquire(&ptable.lock);
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    if (p->pid == pid)
+      break;
+  }
+  if (p == 0)
+  {
+    release(&ptable.lock);
+    cprintf("pid not found");
+    return -1;
+  }
+  else
+  {
+    p->priority_ratio = pRatio;
+    p->arrivetime_ratio = aRatio;
+    p->executed_cycle_ratio = eRatio;
+    p->size_ratio = sRatio;
+
+    release(&ptable.lock);
+    return 0;
+  }
+}
+
+int change_global_bjf(int pRatio, int aRatio, int eRatio, int sRatio)
+{
+  struct proc *p = 0;
+
+  acquire(&ptable.lock);
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    p->priority_ratio = pRatio;
+    p->arrivetime_ratio = aRatio;
+    p->executed_cycle_ratio = eRatio;
+    p->size_ratio = sRatio;
+
+  }
+  release(&ptable.lock);
+
+  
+
+  priority_ratio = pRatio;
+  arrivetime_ratio = aRatio;
+  executed_cycle_ratio = eRatio;
+  size_ratio = sRatio;
+  return 0;
 }
