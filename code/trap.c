@@ -11,6 +11,7 @@
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
 extern uint vectors[];  // in vectors.S: array of 256 entry pointers
+extern uint rrCounter;
 struct spinlock tickslock;
 uint ticks;
 
@@ -51,6 +52,7 @@ trap(struct trapframe *tf)
     if(cpuid() == 0){
       acquire(&tickslock);
       ticks++;
+      agingMechanism();
       wakeup(&ticks);
       release(&tickslock);
     }
@@ -104,7 +106,22 @@ trap(struct trapframe *tf)
   // If interrupts were on while locks held, would need to check nlock.
   if(myproc() && myproc()->state == RUNNING &&
      tf->trapno == T_IRQ0+IRQ_TIMER)
-    yield();
+    {
+      myproc()->runningTicks++;
+      if(myproc()->qType == RR && myproc()->runningTicks >= TIME_SLOT)
+      {
+        yield();
+      }
+      else if(myproc()->qType == DEF || myproc()->qType == LCFS)
+      {
+        yield();
+      }
+      else if(myproc()->qType == FCFS && myproc()->runningTicks > FCFS_UPPER_BOUND)
+      {
+        yield();
+      }
+      // else let the process to be done or finish its time slot --> do not yield!
+    }
 
   // Check if the process has been killed since we yielded
   if(myproc() && myproc()->killed && (tf->cs&3) == DPL_USER)

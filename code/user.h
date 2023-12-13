@@ -23,13 +23,9 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
-int get_parent_pid(void);
-int find_largest_prime_factor(void);
-void get_callers(int syscall_number);
-void print_all_get_status(void);
-void set_proc_queue(int , int);
-void set_bjf_params(int, int, int, int);
-void set_all_bjf_params(int, int, int);
+void print_proc(void);
+void change_queue(int pid, int queueID);
+// void init_ticket(int pid, int ticket);
 
 // ulib.c
 int stat(const char*, struct stat*);
@@ -44,3 +40,4 @@ void* memset(void*, int, uint);
 void* malloc(uint);
 void free(void*);
 int atoi(const char*);
+int calc(int);

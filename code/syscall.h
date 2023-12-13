@@ -20,10 +20,6 @@
 #define SYS_link   19
 #define SYS_mkdir  20
 #define SYS_close  21
-#define SYS_get_parent_pid 22
-#define SYS_find_largest_prime_factor 23
-#define SYS_get_callers 24
-#define SYS_print_all_get_status 25
-#define SYS_set_proc_queue 26
-#define SYS_set_bjf_params 28
-#define SYS_set_all_bjf_params 29
+#define SYS_print_proc 22
+#define SYS_change_queue 23
+// #define SYS_init_ticket 24
