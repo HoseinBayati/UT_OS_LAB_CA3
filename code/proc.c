@@ -572,28 +572,6 @@ void scheduler(void)
     }
     else if (bjf_q.pi >= 0)
     {
-      // p = bjf_q.proc[0];
-      // if (p->state == RUNNABLE)
-      // {
-      //   found_runnable = 1;
-      // }
-      // else if (p->state == RUNNING)
-      // {
-      //   for (int i = 0; i < bjf_q.pi; i++)
-      //   {
-      //     if (bjf_q.proc[i + 1]->state == RUNNABLE)
-      //     {
-      //       p = bjf_q.proc[i + 1];
-      //       found_runnable = 1;
-      //       break;
-      //     }
-      //   }
-      // }
-      // else
-      // {
-      //   panic("No runnable process\n");
-      // }
-
       float worst_rank = 999999999;
       float rank;
 
