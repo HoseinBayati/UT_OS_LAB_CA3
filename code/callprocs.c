@@ -6,7 +6,6 @@ int main(int argc, char* argv[])
 {
     char first = *(argv[1]);
     if((strcmp(argv[1], "print") == 0 && argc == 2) ||
-        (strcmp(argv[1], "ticket") == 0 && argc == 4) ||
         (strcmp(argv[1], "change") == 0 && argc == 4))
     {
         switch((int)(first))

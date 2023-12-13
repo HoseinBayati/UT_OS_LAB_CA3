@@ -73,7 +73,7 @@ struct proc {
 //   expandable heap
 
 #define TIME_SLOT 5
-#define AGING_BOUND 8000
+#define AGING_BOUND 2000
 #define BJF_UPPER_BOUND 500
 
 #define CALL_PROCS "callprocs"

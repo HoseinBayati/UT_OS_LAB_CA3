@@ -190,7 +190,6 @@ void userinit(void)
   p->q_type = LCFS;
   lcfs_q.pi++;
   lcfs_q.proc[lcfs_q.pi] = p;
-  // p->ticket = randGen(p->pid) % 100;
 
   p->state = RUNNABLE;
 
@@ -262,10 +261,6 @@ int fork(void)
   acquire(&ptable.lock);
 
   // Default scheduling queue
-  // np->q_type = LCFS;
-  // lcfs_q.pi++;
-  // lcfs_q.proc[lcfs_q.pi] = np;
-  // np->ticket = randGen(np->pid) % 100;
   np->q_type = LCFS;
 
   lcfs_q.pi++;
@@ -920,8 +915,6 @@ char *wrap_spacei(int inp, char *holder, const int len)
 #define PR_LEN 7
 #define EX_LEN 10
 #define SIZE_LEN 7
-
-// #define TICKET_LEN 3
 #define TICKS_LEN 6
 
 void print_proc(void)
@@ -956,7 +949,7 @@ void print_proc(void)
             p->q_type,
             wrap_spacei(p->arrivetime, at_holder, AT_LEN),
             wrap_spacei(p->priority, pr_holder, PR_LEN),
-            wrap_spacei(p->executed_cycle, ex_holder, EX_LEN),
+            wrap_spacei(p->running_ticks, ex_holder, EX_LEN),
             wrap_spacei(p->sz, size_holder, SIZE_LEN),
             wrap_spacei(ticks, ticks_holder, TICKS_LEN));
   }

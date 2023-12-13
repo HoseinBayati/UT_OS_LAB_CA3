@@ -123,7 +123,6 @@ void            yield(void);
 void            print_proc(void);
 void            agingMechanism(void);
 void            change_queue(int, int);
-void            init_ticket(int, uint);
 
 // swtch.S
 void            swtch(struct context**, struct context*);

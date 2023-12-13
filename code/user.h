@@ -25,7 +25,6 @@ int sleep(int);
 int uptime(void);
 void print_proc(void);
 void change_queue(int pid, int queueID);
-// void init_ticket(int pid, int ticket);
 
 // ulib.c
 int stat(const char*, struct stat*);

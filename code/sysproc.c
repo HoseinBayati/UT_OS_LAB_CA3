@@ -116,18 +116,3 @@ sys_change_queue(void)
   change_queue(pid, queueID);
   return 0;
 }
-
-// int
-// sys_init_ticket(void)
-// {
-//   int pid;
-//   uint ticket;
-//   if(argint(0, &pid) < 0 ||
-//     argint(1, (int*)(&ticket)) < 0 ||
-//     ticket > 100)
-//   {
-//     return -1;
-//   }
-//   init_ticket(pid, ticket);
-//   return 0;
-// }
