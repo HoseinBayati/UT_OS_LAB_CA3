@@ -19,9 +19,9 @@ struct queue
   int pi;
 };
 
-struct queue rrQueue;
-struct queue lcfsQueue;
-struct queue fcfsQueue;
+struct queue rr_q;
+struct queue lcfs_q;
+struct queue bjf_q;
 
 uint randGen(uint seed)
 {
@@ -37,7 +37,7 @@ uint randGen(uint seed)
 }
 
 static struct proc *initproc;
-uint rrCounter = 0;
+uint rr_counter = 0;
 
 int nextpid = 1;
 extern void forkret(void);
@@ -49,9 +49,9 @@ void pinit(void)
 {
   initlock(&ptable.lock, "ptable");
 
-  rrQueue.pi = -1;
-  lcfsQueue.pi = -1;
-  fcfsQueue.pi = -1;
+  rr_q.pi = -1;
+  lcfs_q.pi = -1;
+  bjf_q.pi = -1;
 }
 
 // Must be called with interrupts disabled
@@ -145,7 +145,7 @@ found:
   memset(p->context, 0, sizeof *p->context);
   p->context->eip = (uint)forkret;
 
-  p->arriveTime = ticks;
+  p->arrivetime = ticks;
 
   return p;
 }
@@ -187,9 +187,9 @@ void userinit(void)
   acquire(&ptable.lock);
 
   // Default scheduling queue
-  p->qType = LCFS;
-  lcfsQueue.pi++;
-  lcfsQueue.proc[lcfsQueue.pi] = p;
+  p->q_type = LCFS;
+  lcfs_q.pi++;
+  lcfs_q.proc[lcfs_q.pi] = p;
   // p->ticket = randGen(p->pid) % 100;
 
   p->state = RUNNABLE;
@@ -262,9 +262,9 @@ int fork(void)
   acquire(&ptable.lock);
 
   // Default scheduling queue
-  np->qType = LCFS;
-  lcfsQueue.pi++;
-  lcfsQueue.proc[lcfsQueue.pi] = np;
+  np->q_type = LCFS;
+  lcfs_q.pi++;
+  lcfs_q.proc[lcfs_q.pi] = np;
   // np->ticket = randGen(np->pid) % 100;
 
   np->state = RUNNABLE;
@@ -307,31 +307,31 @@ void shiftOutQueue(struct queue *q, struct proc *p)
 
 void cleanupCorresQueue(struct proc *p)
 {
-  switch (p->qType)
+  switch (p->q_type)
   {
   case RR:
-    if (rrQueue.pi <= -1)
+    if (rr_q.pi <= -1)
     {
-      panic("rr: nothing to clean");
+      panic("RR: nothing to clean");
     }
-    shiftOutQueue(&rrQueue, p);
-    rrQueue.pi--;
+    shiftOutQueue(&rr_q, p);
+    rr_q.pi--;
     break;
   case LCFS:
-    if (lcfsQueue.pi <= -1)
+    if (lcfs_q.pi <= -1)
     {
-      panic("lcfs: nothing to clean");
+      panic("LCFS: nothing to clean");
     }
-    shiftOutQueue(&lcfsQueue, p);
-    lcfsQueue.pi--;
+    shiftOutQueue(&lcfs_q, p);
+    lcfs_q.pi--;
     break;
-  case FCFS:
-    if (fcfsQueue.pi <= -1)
+  case BJF:
+    if (bjf_q.pi <= -1)
     {
-      panic("fcfs: nothing to clean");
+      panic("BJF: nothing to clean");
     }
-    shiftOutQueue(&fcfsQueue, p);
-    fcfsQueue.pi--;
+    shiftOutQueue(&bjf_q, p);
+    bjf_q.pi--;
     break;
   default:
     panic("defaut scheduling cleanup");
@@ -434,6 +434,48 @@ int wait(void)
   }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void set_bjf_params(int pid, int priority_ratio, int arrival_time_ratio, int executed_cycle_ratio)
+{
+  struct proc *p;
+
+  acquire(&ptable.lock);
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    if (p->pid == pid)
+    {
+      p->priority_ratio = priority_ratio;
+      p->arrivetime = arrival_time_ratio;
+      p->executed_cycle_ratio = executed_cycle_ratio;
+    }
+  }
+  release(&ptable.lock);
+}
+
+void set_all_bjf_params(int priority_ratio, int arrival_time_ratio, int executed_cycle_ratio)
+{
+  struct proc *p;
+
+  acquire(&ptable.lock);
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  {
+    p->priority_ratio = priority_ratio;
+    p->arrivetime = arrival_time_ratio;
+    p->executed_cycle_ratio = executed_cycle_ratio;
+  }
+  release(&ptable.lock);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 // PAGEBREAK: 42
 //  Per-CPU process scheduler.
 //  Each CPU calls scheduler() after setting itself up.
@@ -455,79 +497,79 @@ void scheduler(void)
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
-    uint foundProc = 0;
-    if (rrQueue.pi >= 0)
+    uint found_runnable = 0;
+    if (rr_q.pi >= 0)
     {
-      p = rrQueue.proc[rrCounter % (rrQueue.pi + 1)];
+      p = rr_q.proc[rr_counter % (rr_q.pi + 1)];
       if (p->state == RUNNABLE)
       {
-        foundProc = 1;
+        found_runnable = 1;
       }
       else if (p->state == RUNNING)
       {
         // Find a new process to run for the idle core
         // Loop over queue with amount of its length
-        for (int i = 0; i < rrQueue.pi; i++)
+        for (int i = 0; i < rr_q.pi; i++)
         {
-          if (rrQueue.proc[(rrCounter + i + 1) % (rrQueue.pi + 1)]->state == RUNNABLE)
+          if (rr_q.proc[(rr_counter + i + 1) % (rr_q.pi + 1)]->state == RUNNABLE)
           {
-            p = rrQueue.proc[(rrCounter + i + 1) % (rrQueue.pi + 1)];
-            foundProc = 1;
+            p = rr_q.proc[(rr_counter + i + 1) % (rr_q.pi + 1)];
+            found_runnable = 1;
             break;
           }
         }
       }
       else
       {
-        panic("RUNNABLE not found\n");
+        panic("No runnable process\n");
       }
     }
-    else if (lcfsQueue.pi >= 0)
+    else if (lcfs_q.pi >= 0)
     {
-      p = lcfsQueue.proc[0];
+      p = lcfs_q.proc[lcfs_q.pi];
       if (p->state == RUNNABLE)
       {
-        foundProc = 1;
+        found_runnable = 1;
       }
       else if (p->state == RUNNING)
       {
-        for (int i = 0; i < lcfsQueue.pi; i++)
+        for (int i = lcfs_q.pi; i > 0; i--)
         {
-          if (lcfsQueue.proc[i + 1]->state == RUNNABLE)
+          if (lcfs_q.proc[i - 1]->state == RUNNABLE)
           {
-            p = lcfsQueue.proc[i + 1];
-            foundProc = 1;
-            cprintf("lcfs chosen proc: %d %d", p->pid, i);
-          }
-        }
-      }
-      else
-      {
-        panic("RUNNABLE not found\n");
-      }
-    }
-    else if (fcfsQueue.pi >= 0)
-    {
-      p = fcfsQueue.proc[0];
-      if (p->state == RUNNABLE)
-      {
-        foundProc = 1;
-      }
-      else if (p->state == RUNNING)
-      {
-        for (int i = 0; i < fcfsQueue.pi; i++)
-        {
-          if (fcfsQueue.proc[i + 1]->state == RUNNABLE)
-          {
-            p = fcfsQueue.proc[i + 1];
-            foundProc = 1;
+            p = lcfs_q.proc[i - 1];
+            found_runnable = 1;
             break;
           }
         }
       }
       else
       {
-        panic("RUNNABLE not found\n");
+        panic("No runnable process\n");
+      }
+    }
+    else if (bjf_q.pi >= 0)
+    {
+      p = bjf_q.proc[0];
+      if (p->state == RUNNABLE)
+      {
+        found_runnable = 1;
+      }
+      else if (p->state == RUNNING)
+      {
+        for (int i = 0; i < bjf_q.pi; i++)
+        {
+          if (bjf_q.proc[i + 1]->state == RUNNABLE)
+          {
+            p = bjf_q.proc[i + 1];
+            found_runnable = 1;
+            break;
+          }
+        }
+      }
+      else
+      {
+        panic("No runnable process\n");
       }
     }
     else
@@ -541,7 +583,7 @@ void scheduler(void)
         // Switch to chosen process.  It is the process's job
         // to release ptable.lock and then reacquire it
         // before jumping back to us.
-        p->waitingTime = 0;
+        p->waiting_time = 0;
         c->proc = p;
         switchuvm(p);
         p->state = RUNNING;
@@ -554,9 +596,9 @@ void scheduler(void)
         c->proc = 0;
       }
     }
-    if (foundProc)
+    if (found_runnable)
     {
-      p->waitingTime = 0;
+      p->waiting_time = 0;
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
@@ -599,32 +641,32 @@ void yield(void)
   acquire(&ptable.lock); // DOC: yieldlock
   // According to TRICKS file
   // Change proc values before RUNNABLE
-  myproc()->runningTicks = 0; // reset running ticks to 0
-  if (myproc()->qType == RR)
+  myproc()->running_ticks = 0; // reset running ticks to 0
+  if (myproc()->q_type == RR)
   {
-    rrCounter++;
+    rr_counter++;
   }
-  if (myproc()->changeQueueRunning)
+  if (myproc()->change_running_queue)
   {
-    switch (myproc()->qType)
+    switch (myproc()->q_type)
     {
     case RR:
-      rrQueue.pi++;
-      rrQueue.proc[rrQueue.pi] = myproc();
+      rr_q.pi++;
+      rr_q.proc[rr_q.pi] = myproc();
       break;
     case LCFS:
-      lcfsQueue.pi++;
-      lcfsQueue.proc[lcfsQueue.pi] = myproc();
+      lcfs_q.pi++;
+      lcfs_q.proc[lcfs_q.pi] = myproc();
       break;
-    case FCFS:
-      fcfsQueue.pi++;
-      fcfsQueue.proc[fcfsQueue.pi] = myproc();
+    case BJF:
+      bjf_q.pi++;
+      bjf_q.proc[bjf_q.pi] = myproc();
       break;
     default:
       break;
     }
     // Change has been applied
-    myproc()->changeQueueRunning = 0;
+    myproc()->change_running_queue = 0;
   }
   myproc()->state = RUNNABLE;
   sched();
@@ -706,19 +748,19 @@ wakeup1(void *chan)
     if (p->state == SLEEPING && p->chan == chan)
     {
       // Add to queue once again when woken up
-      switch (p->qType)
+      switch (p->q_type)
       {
       case RR:
-        rrQueue.pi++;
-        rrQueue.proc[rrQueue.pi] = p;
+        rr_q.pi++;
+        rr_q.proc[rr_q.pi] = p;
         break;
       case LCFS:
-        lcfsQueue.pi++;
-        lcfsQueue.proc[lcfsQueue.pi] = p;
+        lcfs_q.pi++;
+        lcfs_q.proc[lcfs_q.pi] = p;
         break;
-      case FCFS:
-        fcfsQueue.pi++;
-        fcfsQueue.proc[fcfsQueue.pi] = p;
+      case BJF:
+        bjf_q.pi++;
+        bjf_q.proc[bjf_q.pi] = p;
         break;
       default:
         break;
@@ -751,20 +793,20 @@ int kill(int pid)
       // Wake process from sleep if necessary.
       if (p->state == SLEEPING)
       {
-        if (p->qType == RR)
+        if (p->q_type == RR)
         {
-          rrQueue.pi++;
-          rrQueue.proc[rrQueue.pi] = p;
+          rr_q.pi++;
+          rr_q.proc[rr_q.pi] = p;
         }
-        else if (p->qType == LCFS)
+        else if (p->q_type == LCFS)
         {
-          lcfsQueue.pi++;
-          lcfsQueue.proc[lcfsQueue.pi] = p;
+          lcfs_q.pi++;
+          lcfs_q.proc[lcfs_q.pi] = p;
         }
-        else if (p->qType == FCFS)
+        else if (p->q_type == BJF)
         {
-          fcfsQueue.pi++;
-          fcfsQueue.proc[fcfsQueue.pi] = p;
+          bjf_q.pi++;
+          bjf_q.proc[bjf_q.pi] = p;
         }
         p->state = RUNNABLE;
       }
@@ -871,7 +913,7 @@ void print_proc(void)
       [RUNNABLE] "RUNNABLE",
       [RUNNING] "RUNNING ",
       [ZOMBIE] "ZOMBIE  "};
-  cprintf("name            pid  state    queue  arrive time  cycle\n");
+  cprintf("name            pid  state    queue  arrive_time    global_ticks\n");
   cprintf("...............................................................\n");
   acquire(&ptable.lock);
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
@@ -881,14 +923,14 @@ void print_proc(void)
     char name_holder[NAME_LEN + 1];
     char pid_holder[PID_LEN + 1];
     char at_holder[AT_LEN + 1];
-    // char ticket_holder[TICKET_LEN + 1];
-    char ticks_holder[TICKS_LEN + 1];
-    cprintf("%s %s  %s %d      %s %s     \n",
-            wrap_space(p->name, name_holder, NAME_LEN), wrap_spacei(p->pid, pid_holder, PID_LEN),
-            states[p->state], p->qType - RR, wrap_spacei(p->arriveTime, at_holder, AT_LEN)
-            // ,wrap_spacei(p->ticket, ticket_holder, TICKET_LEN)
-            , wrap_spacei(p->runningTicks, ticks_holder, TICKS_LEN)
-            );
+
+    cprintf("%s %s  %s %d      %s   %d  \n",
+            wrap_space(p->name, name_holder, NAME_LEN),
+            wrap_spacei(p->pid, pid_holder, PID_LEN),
+            states[p->state], p->q_type,
+            wrap_spacei(p->arrivetime, at_holder, AT_LEN),
+            // wrap_spacei(p->runningTicks, ticks_holder, TICKS_LEN),
+            ticks);
   }
   release(&ptable.lock);
 }
@@ -904,13 +946,13 @@ void agingMechanism(void)
   {
     if (p->state == RUNNABLE)
     {
-      p->waitingTime++;
-      if (p->waitingTime > AGING_BOUND && p->qType != RR)
+      p->waiting_time++;
+      if (p->waiting_time > AGING_BOUND && p->q_type != RR)
       {
         cleanupCorresQueue(p);
-        p->qType = RR;
-        rrQueue.pi++;
-        rrQueue.proc[rrQueue.pi] = p;
+        p->q_type = RR;
+        rr_q.pi++;
+        rr_q.proc[rr_q.pi] = p;
       }
     }
   }
@@ -941,30 +983,30 @@ void change_queue(int pid, int queueID)
   switch (queueID)
   {
   case DEF:
-    p->qType = DEF;
+    p->q_type = DEF;
     break;
   case RR:
-    p->qType = RR;
+    p->q_type = RR;
     if (p->state == RUNNABLE)
     {
-      rrQueue.pi++;
-      rrQueue.proc[rrQueue.pi] = p;
+      rr_q.pi++;
+      rr_q.proc[rr_q.pi] = p;
     }
     break;
   case LCFS:
-    p->qType = LCFS;
+    p->q_type = LCFS;
     if (p->state == RUNNABLE)
     {
-      lcfsQueue.pi++;
-      lcfsQueue.proc[lcfsQueue.pi] = p;
+      lcfs_q.pi++;
+      lcfs_q.proc[lcfs_q.pi] = p;
     }
     break;
-  case FCFS:
-    p->qType = FCFS;
+  case BJF:
+    p->q_type = BJF;
     if (p->state == RUNNABLE)
     {
-      fcfsQueue.pi++;
-      fcfsQueue.proc[fcfsQueue.pi] = p;
+      bjf_q.pi++;
+      bjf_q.proc[bjf_q.pi] = p;
     }
     break;
   default:
@@ -973,7 +1015,7 @@ void change_queue(int pid, int queueID)
 
   if (p->state == RUNNING)
   {
-    p->changeQueueRunning = 1;
+    p->change_running_queue = 1;
   }
   release(&ptable.lock);
 }

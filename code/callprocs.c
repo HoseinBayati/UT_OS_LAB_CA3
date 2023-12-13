@@ -14,9 +14,6 @@ int main(int argc, char* argv[])
             case (int)('p'):
                 print_proc();
                 break;
-            // case (int)('t'):
-            //     init_ticket(atoi(argv[2]), atoi(argv[3]));
-            //     break;
             case (int)('c'):
                 change_queue(atoi(argv[2]), atoi(argv[3]));
                 break;
@@ -27,10 +24,7 @@ int main(int argc, char* argv[])
     }
     else
     {
-        printf(1, "bad argument. use one of the following:\n\
-print: usage: callprocs print\n\
-ticket: usage: callprocs ticket [pid] [ticket]\n\
-change: usage: callprocs change [pid] [queue]\n");
+        printf(1, "no such command \n");
     }
     exit();    
 }

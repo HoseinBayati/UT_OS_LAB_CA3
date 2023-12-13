@@ -11,7 +11,7 @@
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
 extern uint vectors[];  // in vectors.S: array of 256 entry pointers
-extern uint rrCounter;
+extern uint rr_counter;
 struct spinlock tickslock;
 uint ticks;
 
@@ -107,16 +107,16 @@ trap(struct trapframe *tf)
   if(myproc() && myproc()->state == RUNNING &&
      tf->trapno == T_IRQ0+IRQ_TIMER)
     {
-      myproc()->runningTicks++;
-      if(myproc()->qType == RR && myproc()->runningTicks >= TIME_SLOT)
+      myproc()->running_ticks++;
+      if(myproc()->q_type == RR && myproc()->running_ticks >= TIME_SLOT)
       {
         yield();
       }
-      else if(myproc()->qType == DEF || myproc()->qType == LCFS)
+      else if(myproc()->q_type == DEF || myproc()->q_type == LCFS)
       {
         yield();
       }
-      else if(myproc()->qType == FCFS && myproc()->runningTicks > FCFS_UPPER_BOUND)
+      else if(myproc()->q_type == BJF && myproc()->running_ticks > BJF_UPPER_BOUND)
       {
         yield();
       }

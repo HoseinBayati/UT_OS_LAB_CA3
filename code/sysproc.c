@@ -109,7 +109,7 @@ sys_change_queue(void)
     (queueID != DEF &&
     queueID != RR &&
     queueID != LCFS &&
-    queueID != FCFS))
+    queueID != BJF))
   {
     return -1;
   }

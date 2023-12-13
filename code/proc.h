@@ -34,7 +34,7 @@ struct context {
 
 enum procstate { UNUSED = 0, EMBRYO = 1, SLEEPING = 2, RUNNABLE = 3, RUNNING = 4, ZOMBIE = 5 };
 
-enum schedQ { RR = 1, LCFS = 2, FCFS = 3, DEF = 0 };
+enum schedQ { RR = 1, LCFS = 2, BJF = 3, DEF = 0 };
 
 // Per-process state
 struct proc {
@@ -51,12 +51,21 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
-  enum schedQ qType;
-  uint runningTicks;
+  enum schedQ q_type;
+  
+
+  int priority;                // proc priority in queue
+  float priority_ratio;          // used for calculating rank
+  float executed_cycle;        // increasing 0.1 per cycle?
+  float executed_cycle_ratio;    // used for calculating rank
+  uint arrivetime;
+  float arrivetime_ratio;      // arrival time ratio
+  float process_size_ratio;
+
+  uint running_ticks;
   // uint ticket;
-  uint arriveTime;
-  uint waitingTime;
-  ushort changeQueueRunning;  // If changing a process's queue while running is 1 else 0
+  uint waiting_time;
+  uint change_running_queue;  // If changing a process's queue while running is 1 else 0
 };
 
 // Process memory is laid out contiguously, low addresses first:
@@ -66,9 +75,9 @@ struct proc {
 //   expandable heap
 
 #define TIME_SLOT 5
-#define AGING_BOUND 1000
-#define FCFS_UPPER_BOUND 500
-#define LCFS_UPPER_BOUND 500
+#define AGING_BOUND 8000
+#define BJF_UPPER_BOUND 500
+// #define LCFS_UPPER_BOUND 500
 
 
 
