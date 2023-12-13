@@ -59,7 +59,7 @@ struct proc {
   float executed_cycle_ratio;    // used for calculating rank
   uint arrivetime;
   float arrivetime_ratio;      // arrival time ratio
-  float process_size_ratio;
+  float size_ratio;
 
   uint running_ticks;
   uint waiting_time;

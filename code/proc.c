@@ -262,10 +262,26 @@ int fork(void)
   acquire(&ptable.lock);
 
   // Default scheduling queue
+  // np->q_type = LCFS;
+  // lcfs_q.pi++;
+  // lcfs_q.proc[lcfs_q.pi] = np;
+  // np->ticket = randGen(np->pid) % 100;
   np->q_type = LCFS;
+
   lcfs_q.pi++;
   lcfs_q.proc[lcfs_q.pi] = np;
-  // np->ticket = randGen(np->pid) % 100;
+  np->arrivetime = ticks;
+  np->waiting_time = 0;
+  np->executed_cycle = 0;
+
+  acquire(&tickslock);
+  np->priority = (ticks * ticks * 1021) % 100;
+  release(&tickslock);
+
+  np->priority_ratio = 0.25;
+  np->executed_cycle_ratio = 0.25;
+  np->arrivetime_ratio = 0.25;
+  np->size_ratio = 0.25;
 
   np->state = RUNNABLE;
 
@@ -922,7 +938,11 @@ char *wrap_spacei(int inp, char *holder, const int len)
 #define NAME_LEN 15
 #define PID_LEN 3
 #define STATE_LEN 8
-#define AT_LEN 5
+#define AT_LEN 10
+#define PR_LEN 7
+#define EX_LEN 10
+#define SIZE_LEN 7
+
 // #define TICKET_LEN 3
 #define TICKS_LEN 6
 
@@ -937,7 +957,7 @@ void print_proc(void)
       [RUNNING] "RUNNING ",
       [ZOMBIE] "ZOMBIE  "};
   cprintf("name          pid  state    queue  arr_time  priority exe_cycle  p_size  ticks\n");
-  cprintf("...............................................................\n");
+  cprintf("..............................................................................\n");
   acquire(&ptable.lock);
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
   {
@@ -946,17 +966,21 @@ void print_proc(void)
     char name_holder[NAME_LEN + 1];
     char pid_holder[PID_LEN + 1];
     char at_holder[AT_LEN + 1];
+    char pr_holder[PR_LEN + 1];
+    char ex_holder[EX_LEN + 1];
+    char size_holder[SIZE_LEN + 1];
+    char ticks_holder[TICKS_LEN + 1];
 
-    cprintf("%s %s %s   %d     %s     %d        %d          %d       %d\n",
+    cprintf("%s %s %s   %d   %s %s %s %s %s\n",
             wrap_space(p->name, name_holder, NAME_LEN),
             wrap_spacei(p->pid, pid_holder, PID_LEN),
-            states[p->state], p->q_type,
+            states[p->state],
+            p->q_type,
             wrap_spacei(p->arrivetime, at_holder, AT_LEN),
-            p->priority,
-            p->executed_cycle,
-            sizeof(p),
-            // wrap_spacei(p->runningTicks, ticks_holder, TICKS_LEN),
-            ticks);
+            wrap_spacei(p->priority, pr_holder, PR_LEN),
+            wrap_spacei(p->executed_cycle, ex_holder, EX_LEN),
+            wrap_spacei(p->sz, size_holder, SIZE_LEN),
+            wrap_spacei(ticks, ticks_holder, TICKS_LEN));
   }
   release(&ptable.lock);
 }
