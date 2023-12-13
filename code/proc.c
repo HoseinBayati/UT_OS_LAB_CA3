@@ -912,9 +912,17 @@ char *wrap_spacei(int inp, char *holder, const int len)
 #define PID_LEN 3
 #define STATE_LEN 8
 #define AT_LEN 10
-#define PR_LEN 7
+#define ATR_LEN 1 //Arrive time ratio
+
+#define PR_LEN 13
+#define PRR_LEN 1 //Priority ratio
+
 #define EX_LEN 10
+#define EXR_LEN 1 //Execution ratio
+
 #define SIZE_LEN 7
+#define SIZER_LEN 2 //Size ratio
+
 #define TICKS_LEN 6
 
 void print_proc(void)
@@ -927,7 +935,7 @@ void print_proc(void)
       [RUNNABLE] "RUNNABLE",
       [RUNNING] "RUNNING ",
       [ZOMBIE] "ZOMBIE  "};
-  cprintf("name          pid  state    queue  arr_time  priority exe_cycle  p_size  ticks\n");
+  cprintf("name          pid  state    queue  arr_time  priority Ratio:p a e s  exe_cycle  p_size  ticks\n");
   cprintf("..............................................................................\n");
   acquire(&ptable.lock);
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
@@ -937,18 +945,31 @@ void print_proc(void)
     char name_holder[NAME_LEN + 1];
     char pid_holder[PID_LEN + 1];
     char at_holder[AT_LEN + 1];
+    char atr_holder[ATR_LEN + 1];
+
     char pr_holder[PR_LEN + 1];
+    char prr_holder[PRR_LEN + 1];
+
     char ex_holder[EX_LEN + 1];
+    char exr_holder[EXR_LEN + 1];
+
     char size_holder[SIZE_LEN + 1];
+    char sizer_holder[SIZER_LEN + 1];
+
     char ticks_holder[TICKS_LEN + 1];
 
-    cprintf("%s %s %s   %d   %s %s %s %s %s\n",
+    cprintf("%s %s %s   %d   %s %s %s %s %s %s %s %s %s\n",
             wrap_space(p->name, name_holder, NAME_LEN),
             wrap_spacei(p->pid, pid_holder, PID_LEN),
             states[p->state],
             p->q_type,
             wrap_spacei(p->arrivetime, at_holder, AT_LEN),
             wrap_spacei(p->priority, pr_holder, PR_LEN),
+            wrap_spacei(p->priority_ratio, prr_holder, PRR_LEN),
+            wrap_spacei(p->arrivetime_ratio, atr_holder, ATR_LEN),
+            wrap_spacei(p->executed_cycle_ratio, exr_holder, EXR_LEN),
+            wrap_spacei(p->size_ratio, sizer_holder, SIZER_LEN),
+          
             wrap_spacei(p->running_ticks, ex_holder, EX_LEN),
             wrap_spacei(p->sz, size_holder, SIZE_LEN),
             wrap_spacei(ticks, ticks_holder, TICKS_LEN));
